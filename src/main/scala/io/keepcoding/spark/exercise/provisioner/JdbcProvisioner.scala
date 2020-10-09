@@ -24,7 +24,7 @@ object JdbcProvisioner {
       // create the statement, and run the select query
       val statement = connection.createStatement()
       println("Conexión establecida correctamente!")
-
+      /*
       println("Creando la tabla user_metadata (id TEXT, name TEXT, email TEXT, quota BIGINT)")
       statement.execute("CREATE TABLE IF NOT EXISTS user_metadata (id TEXT, name TEXT, email TEXT, quota BIGINT)")
 
@@ -58,7 +58,9 @@ object JdbcProvisioner {
       statement.execute("INSERT INTO user_metadata (id, name, email, quota) VALUES ('00000000-0000-0000-0000-000000000018', 'lucia', 'lucia@gmail.com', 300000)")
       statement.execute("INSERT INTO user_metadata (id, name, email, quota) VALUES ('00000000-0000-0000-0000-000000000019', 'carlota', 'carlota@gmail.com', 200000)")
       statement.execute("INSERT INTO user_metadata (id, name, email, quota) VALUES ('00000000-0000-0000-0000-000000000020', 'emilio', 'emilio@gmail.com', 200000)")
-
+*/
+      println("Creando la tabla user_metadata_agg (bytes BIGINT,timestamp TEXT, app TEXT, id TEXT, antenna_id TEXT, name TEXT, email TEXT, quota BIGINT)")
+      statement.execute("CREATE TABLE IF NOT EXISTS (bytes BIGINT,timestamp TEXT, app TEXT, id TEXT, antenna_id TEXT, name TEXT, email TEXT, quota BIGINT)")
 
     } catch {
       case e => e.printStackTrace()

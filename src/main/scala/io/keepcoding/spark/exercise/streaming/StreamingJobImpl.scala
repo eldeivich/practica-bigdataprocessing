@@ -16,6 +16,8 @@ object StreamingJobImpl extends StreamingJob {
     .appName("Proyecto David")
     .getOrCreate()
 
+  import spark.implicits._
+
   override def readFromKafka(kafkaServer: String, topic: String): DataFrame = {
     spark
       .readStream
@@ -33,8 +35,7 @@ object StreamingJobImpl extends StreamingJob {
       .select("json.*")
   }
 
-  override def readUsers(jdbcURI: String, jdbcTable: String, user: String, password: String): DataFrame = ???
-  /*{
+  override def readUsers(jdbcURI: String, jdbcTable: String, user: String, password: String): DataFrame = {
     spark
       .read
       .format("jdbc")
@@ -44,16 +45,15 @@ object StreamingJobImpl extends StreamingJob {
       .option("user", user)
       .option("password", password)
       .load()
-  }*/
+  }
 
-  override def enrichUsersWithMetadata(usersDF: DataFrame, user_metadataDF: DataFrame): DataFrame = ???
-  /*{
+  override def enrichUsersWithMetadata(usersDF: DataFrame, user_metadataDF: DataFrame): DataFrame = {
     usersDF.as("users")
       .join(
         user_metadataDF.as("user_metadata"),
-          //3:20:00
-      )
-  }*/
+        $"users.id" === $"user_metadata.id"
+      ).drop($"user_metadata.id")
+  }
 
   override def computeDevicesCountByCoordinates(dataFrame: DataFrame): DataFrame = ???
 

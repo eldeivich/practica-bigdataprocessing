@@ -29,22 +29,15 @@ trait StreamingJob {
   def writeToStorage(dataFrame: DataFrame, storageRootPath: String): Future[Unit]
 
   def run(args: Array[String]): Unit = {
-    //val Array(kafkaServer, topic, jdbcUri, jdbcMetadataTable, aggJdbcTable, jdbcUser, jdbcPassword, storagePath) = args
-    val Array(kafkaServer, topic) = args
+    val Array(kafkaServer, topic, jdbcUri, jdbcMetadataTable, aggJdbcTable, jdbcUser, jdbcPassword, storagePath) = args
+
     println(s"Running with: ${args.toSeq}")
 
     val kafkaDF = readFromKafka(kafkaServer, topic)
-    val antennaDF = parserJsonData(kafkaDF)
-
-    antennaDF
-      .writeStream
-      .format("console")
-      .start()
-      .awaitTermination()
-
+    val usersDF = parserJsonData(kafkaDF)
+    val user_metadataDF = readUsers(jdbcUri, jdbcMetadataTable, jdbcUser, jdbcPassword)
+    val usersMetadataDF = enrichUsersWithMetadata(usersDF, user_metadataDF)
     /*
-    val metadataDF = readUsers(jdbcUri, jdbcMetadataTable, jdbcUser, jdbcPassword)
-    val usersMetadataDF = enrichUsersWithMetadata(usersDF, metadataDF)
     val storageFuture = writeToStorage(antennaDF, storagePath)
     val aggByCoordinatesDF = computeDevicesCountByCoordinates(antennaMetadataDF)
     val aggFuture = writeToJdbc(aggByCoordinatesDF, jdbcUri, aggJdbcTable, jdbcUser, jdbcPassword)
