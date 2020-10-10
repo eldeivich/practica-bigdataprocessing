@@ -7,7 +7,6 @@ import scala.concurrent.{Await, Future}
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-// case class AntennaMessage(timestamp: Timestamp, id: String, metric: String, value: Long)
 case class UsersMessage(bytes: Long, timestamp: String, app: String, id: String, antenna_id: String)
 
 trait StreamingJob {
@@ -37,6 +36,14 @@ trait StreamingJob {
     val usersDF = parserJsonData(kafkaDF)
     val user_metadataDF = readUsers(jdbcUri, jdbcMetadataTable, jdbcUser, jdbcPassword)
     val usersMetadataDF = enrichUsersWithMetadata(usersDF, user_metadataDF)
+
+    usersMetadataDF
+      .writeStream
+      .format("console")
+      .start()
+      .awaitTermination()
+    //3:25:20
+
     /*
     val storageFuture = writeToStorage(antennaDF, storagePath)
     val aggByCoordinatesDF = computeDevicesCountByCoordinates(antennaMetadataDF)
