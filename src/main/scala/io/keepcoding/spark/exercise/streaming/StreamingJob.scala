@@ -7,7 +7,7 @@ import scala.concurrent.{Await, Future}
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-case class UsersMessage(bytes: Long, timestamp: String, app: String, id: String, antenna_id: String)
+case class UsersMessage(bytes: Long, timestamp: Timestamp, app: String, id: String, antenna_id: String)
 
 trait StreamingJob {
 
@@ -21,7 +21,7 @@ trait StreamingJob {
 
   def enrichUsersWithMetadata(usersDF: DataFrame, metadataDF: DataFrame): DataFrame
 
-  def computeDevicesCountByCoordinates(dataFrame: DataFrame): DataFrame
+  def computeUsersCountByBytes(dataFrame: DataFrame): DataFrame
 
   def writeToJdbc(dataFrame: DataFrame, jdbcURI: String, jdbcTable: String, user: String, password: String): Future[Unit]
 
@@ -36,20 +36,13 @@ trait StreamingJob {
     val usersDF = parserJsonData(kafkaDF)
     val user_metadataDF = readUsers(jdbcUri, jdbcMetadataTable, jdbcUser, jdbcPassword)
     val usersMetadataDF = enrichUsersWithMetadata(usersDF, user_metadataDF)
-
-    usersMetadataDF
-      .writeStream
-      .format("console")
-      .start()
-      .awaitTermination()
-    //3:25:20
-
+    val storageFuture = writeToStorage(usersMetadataDF, storagePath)
+    val aggByBytesDF = computeUsersCountByBytes(usersMetadataDF)
     /*
-    val storageFuture = writeToStorage(antennaDF, storagePath)
-    val aggByCoordinatesDF = computeDevicesCountByCoordinates(antennaMetadataDF)
     val aggFuture = writeToJdbc(aggByCoordinatesDF, jdbcUri, aggJdbcTable, jdbcUser, jdbcPassword)
 
     Await.result(Future.sequence(Seq(aggFuture, storageFuture)), Duration.Inf)*/
+    Await.result(Future.sequence(Seq(storageFuture)), Duration.Inf)
 
     spark.close()
   }
